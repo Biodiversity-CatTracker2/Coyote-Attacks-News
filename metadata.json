@@ -1,0 +1,11 @@
+{
+    "databases": {
+        "db": {
+            "tables": {
+                "news": {
+                    "sort_desc": "published_date"
+                }
+            }
+        }
+    }
+}

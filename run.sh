@@ -1,0 +1,6 @@
+#!/bin/bash
+
+datasette db.sqlite3 \
+  --setting suggest_facets off \
+  --config default_page_size:50 \
+  --metadata metadata.json
