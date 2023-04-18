@@ -1,3 +1,4 @@
+datasette
 requests
 python-dotenv
 tqdm
