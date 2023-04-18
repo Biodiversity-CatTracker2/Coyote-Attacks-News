@@ -162,4 +162,5 @@ cython_debug/
 # Other
 .DS_Store
 sample.json
-
+*.sqlite3
+run.sh

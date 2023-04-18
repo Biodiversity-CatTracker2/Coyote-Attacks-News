@@ -5,9 +5,7 @@ import argparse
 import json
 import os
 import sqlite3
-import sys
 import time
-# from datetime import datetime
 from typing import Optional
 
 import requests
@@ -23,18 +21,22 @@ class Database:
 
     def create_db(self) -> None:
         c = self.conn.cursor()
-        c.execute('''CREATE TABLE news
+        c.execute('''CREATE TABLE IF NOT EXISTS news
                      (title text, link text, published_date text, summary text, language text)'''
+
                   # noqa: E501
                   )
         self.conn.commit()
 
     def insert_db(self, data: dict) -> None:
         c = self.conn.cursor()
-        c.execute("INSERT INTO news VALUES (?, ?, ?, ?, ?)",
-                  (data['title'], data['link'], data['published_date'],
-                   data['summary'], data['language']))
-        self.conn.commit()
+        c.execute(f"SELECT * FROM news WHERE title='{data['title']}'")
+        row = c.fetchone()
+        if row is None:
+            c.execute("INSERT INTO news VALUES (?, ?, ?, ?, ?)",
+                      (data['title'], data['link'], data['published_date'],
+                       data['summary'], data['language']))
+            self.conn.commit()
 
     def get_db(self) -> list:
         c = self.conn.cursor()
@@ -80,7 +82,7 @@ def newscatcher_request(token: str,
     return json.loads(response.text)
 
 
-def run(db_name: str, start_date: str, end_date: str):
+def run(db_name: str, start_date: str, end_date: str, no_sleep: bool = False):
     db = Database(db_name=db_name)
     # db.create_db()
 
@@ -98,7 +100,7 @@ def run(db_name: str, start_date: str, end_date: str):
     total_pages = results_1['total_pages']
     print(f'Total number of pages for current request: {total_pages}')
 
-    for _page in tqdm(range(2, total_pages + 1)):
+    for _page in tqdm(range(1, total_pages + 1)):
         results = newscatcher_request(os.environ['RAPID_API_KEY'],
                                       q,
                                       start_date,
@@ -113,22 +115,26 @@ def run(db_name: str, start_date: str, end_date: str):
             continue
         else:
             articles.extend(results['articles'])
-            print(f'Added {len(results["articles"])} article...')
-        print('Sleeping for 3.5 mins...')
-        time.sleep(60 * 3.5)
+            print(f'Found {len(results["articles"])} article...')
+        if not no_sleep:
+            print('Sleeping for 3.5 mins...')
+            time.sleep(60 * 3.5)
 
     if not articles:
         print('No articles found...')
         db.conn.close()
-        sys.exit(0)
+        return
 
     articles_unique = []
 
     for x in articles:
+        if 'hockey' in x['title'].lower() or 'basketball' in x['title'].lower(
+        ):
+            continue
         if all(y['title'].lower() != x['title'].lower()
                for y in articles_unique):
             articles_unique.append(x)
-
+    print('Unique articles:', len(articles_unique))
     for article in articles_unique:
         db.insert_db(article)
 
@@ -152,12 +158,12 @@ def opts() -> argparse.Namespace:
                         help='Search until this date',
                         type=str,
                         required=True)
+    parser.add_argument('--no-sleep', help='No sleep', action='store_true')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     load_dotenv()
     args = opts()
-    run(args.db_name, args.start_date, args.end_date)
+    run(args.db_name, args.start_date, args.end_date, args.no_sleep)
     # example: run('db.sqlite3', '2021-01-01', '2022-12-31')
-    # today_date = datetime.today().strftime('%Y-%m-%d')
