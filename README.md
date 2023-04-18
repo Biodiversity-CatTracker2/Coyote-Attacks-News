@@ -2,7 +2,7 @@
 
 🚀 This program is designed to scrape news articles related to coyote attacks within a specified time period using the Newscatcher API. The program saves the extracted data into a SQLite database.
 
-Note: The script requires an API key for [Newscatcher](https://rapidapi.com/newscatcher-api-newscatcher-api-default/api/newscatcher).
+*Note: The script requires an API key for [Newscatcher](https://rapidapi.com/newscatcher-api-newscatcher-api-default/api/newscatcher).*
 
 [![Supported Python versions](https://img.shields.io/badge/Python-%3E=3.6-blue.svg)](https://www.python.org/downloads/) [![PEP8](https://img.shields.io/badge/Code%20style-PEP%208-orange.svg)](https://www.python.org/dev/peps/pep-0008/) 
 
@@ -39,6 +39,11 @@ options:
   --no-sleep            No sleep
 ```
 
+### Add your Newscatcher token to .env
+```bash
+mv .env.example .env
+nano .env
+```
 
 ### Parse Articles
 ```bash
