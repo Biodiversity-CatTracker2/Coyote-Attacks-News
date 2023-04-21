@@ -30,7 +30,7 @@ class Database:
 
     def insert_db(self, data: dict) -> None:
         c = self.conn.cursor()
-        c.execute(f"SELECT * FROM news WHERE title='{data['title']}'")
+        c.execute("SELECT * FROM news WHERE title=?", (data['title'],))
         row = c.fetchone()
         if row is None:
             c.execute("INSERT INTO news VALUES (?, ?, ?, ?, ?)",
